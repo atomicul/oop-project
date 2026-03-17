@@ -1,5 +1,8 @@
 # Telefonul fara fir
 
+Mai multe clase telefon paseaza mesaje. Deoarece semnalul este prost, se pierde
+informatie :(
+
 ### Folosiți template-ul corespunzător grupei voastre!
 
 | Laborant  | Link template                                |
