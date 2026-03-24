@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 DEFAULT_BUILD_DIR="build"
 DEFAULT_BUILD_TYPE="Debug"
