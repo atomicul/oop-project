@@ -1,0 +1,1 @@
+Network { Name=TestNet, Phones=[Phone { Name="Alice", Subscribers=["Bob"] }, Phone { Name="Bob", Subscribers=["Charlie"] }, Phone { Name="Charlie", Subscribers=["Dave"] }, Phone { Name="Dave", Subscribers=[] }] }
