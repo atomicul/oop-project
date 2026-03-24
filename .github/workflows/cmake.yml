@@ -41,6 +41,21 @@ defaults:
     shell: bash
 
 jobs:
+  clang-format:
+    name: "Clang-Format"
+    # renovate: depName=ubuntu
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      CLANG_VER: 18
+    steps:
+      - name: Checkout repo
+        # renovate: datasource=github-tags depName=actions/checkout versioning=loose
+        uses: actions/checkout@v6.0.2
+
+      - name: Run clang-format
+        uses: ./.github/actions/clang-format
+
   cppcheck:
     name: "Cppcheck"
     # renovate: depName=ubuntu
