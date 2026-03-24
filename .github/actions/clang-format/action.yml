@@ -10,10 +10,21 @@ runs:
         sudo apt-get update
         sudo apt-get install --no-install-recommends clang-format-${{ env.CLANG_VER }}
 
-    - name: Clang-Format
+    - name: Run clang-format
       shell: bash
       run: |
         find . -name '*.cpp' -o -name '*.h' -o -name '*.hpp' |
           grep -v "./${BUILD_DIR}/" |
           grep -v "./${EXT_DIR}/" |
-          xargs clang-format-${{ env.CLANG_VER }} --dry-run -Werror
+          xargs clang-format-${{ env.CLANG_VER }} -i
+
+    - name: Push fixup commit if needed
+      shell: bash
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fixup! Apply clang-format"
+          git push
+        fi

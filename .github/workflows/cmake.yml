@@ -46,6 +46,8 @@ jobs:
     # renovate: depName=ubuntu
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    permissions:
+      contents: write
     env:
       CLANG_VER: 18
     steps:
