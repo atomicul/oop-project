@@ -1,0 +1,19 @@
+name: 'Run clang-format'
+description: 'Install and run clang-format'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install clang-format
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends clang-format-${{ env.CLANG_VER }}
+
+    - name: Clang-Format
+      shell: bash
+      run: |
+        find . -name '*.cpp' -o -name '*.h' -o -name '*.hpp' |
+          grep -v "./${BUILD_DIR}/" |
+          grep -v "./${EXT_DIR}/" |
+          xargs clang-format-${{ env.CLANG_VER }} --dry-run -Werror
