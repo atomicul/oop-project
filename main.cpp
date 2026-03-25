@@ -1,6 +1,6 @@
-#include <iostream>
-#include <array>
 #include "include/Example.h"
+#include <array>
+#include <iostream>
 // This also works if you do not want `include/`, but some editors might not like it
 // #include "Example.h"
 
@@ -33,13 +33,13 @@ int main() {
     /////////////////////////////////////////////////////////////////////////
     std::cin >> nr;
     /////////////////////////////////////////////////////////////////////////
-    for(int i = 0; i < nr; ++i) {
+    for (int i = 0; i < nr; ++i) {
         std::cout << "v[" << i << "] = ";
         std::cin >> v[i];
     }
     std::cout << "\n\n";
     std::cout << "Am citit de la tastatură " << nr << " elemente:\n";
-    for(int i = 0; i < nr; ++i) {
+    for (int i = 0; i < nr; ++i) {
         std::cout << "- " << v[i] << "\n";
     }
     ///////////////////////////////////////////////////////////////////////////
