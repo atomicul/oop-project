@@ -126,6 +126,7 @@ jobs:
             cxx: clang++-18
             # renovate: depName=ubuntu
             name: "Ubuntu 24.04 Clang 18"
+            cmake_flags: "-DBUILD_TESTS=ON"
             cmake_generator: Ninja
 
             # renovate: depName=ubuntu
@@ -134,7 +135,7 @@ jobs:
             cxx: g++-12
             # renovate: depName=ubuntu
             name: "ASan: Ubuntu 22.04 GCC 12"
-            cmake_flags: "-DUSE_ASAN=ON -DBUILD_SHARED_LIBS=OFF"
+            cmake_flags: "-DUSE_ASAN=ON -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=ON"
             cmake_generator: Ninja
             # This env runs address sanitizers
             runs_asan: true
@@ -147,7 +148,7 @@ jobs:
             cxx: g++-12
             # renovate: depName=ubuntu
             name: "Valgrind: Ubuntu 22.04 GCC 12"
-            cmake_flags: "-DBUILD_SHARED_LIBS=OFF"
+            cmake_flags: "-DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=ON"
             cmake_generator: Ninja
             # This env runs valgrind
             runs_valgrind: true
@@ -158,7 +159,7 @@ jobs:
             cxx: clang++
             # renovate: depName=macos
             name: "macOS 14 Apple Clang 15"
-            cmake_flags: "-DUSE_ASAN=OFF -DBUILD_SHARED_LIBS=ON"
+            cmake_flags: "-DUSE_ASAN=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TESTS=ON"
             cmake_generator: Ninja
             # This env does not currently run address sanitizers
             runs_asan: false
@@ -169,7 +170,7 @@ jobs:
             cxx: g++-13
             # renovate: depName=macos
             name: "macOS 14 GCC 13"
-            cmake_flags: "-DBUILD_SHARED_LIBS=OFF"
+            cmake_flags: "-DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=ON"
             cmake_generator: Ninja
 
             # renovate: depName=windows
@@ -178,7 +179,7 @@ jobs:
             cxx: cl
             # renovate: depName=windows
             name: "ASan: Windows 2022 MSVC 19.44"
-            cmake_flags: "-DUSE_ASAN=ON -DBUILD_SHARED_LIBS=OFF"
+            cmake_flags: "-DUSE_ASAN=ON -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=ON"
             # Ninja is not faster on MSVC because... MSVC
             # cmake_generator: "Ninja"
             # cmake_generator: "Ninja Multi-Config"
@@ -191,7 +192,7 @@ jobs:
             cxx: g++
             # renovate: depName=windows
             name: "Windows 2022 MinGW GCC 13"
-            cmake_flags: "-DBUILD_SHARED_LIBS=ON"
+            cmake_flags: "-DBUILD_SHARED_LIBS=ON -DBUILD_TESTS=ON"
             cmake_generator: Ninja
 
     steps:
@@ -229,6 +230,10 @@ jobs:
       - name: Build
         run: |
           bash ./scripts/cmake.sh build -c ${{ env.BUILD_TYPE }}
+
+      - name: Run tests
+        run: |
+          cd ${{ env.BUILD_DIR }} && ctest --output-on-failure -C ${{ env.BUILD_TYPE }}
 
       - name: Install
         # Use CMake to "install" build artifacts (only interested in CMake registered targets) to our custom artifacts directory

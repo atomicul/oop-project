@@ -17,25 +17,43 @@ include(cmake/Options.cmake)
 include(cmake/CompilerFlags.cmake)
 include(cmake/CopyHelper.cmake)
 
-add_executable(${MAIN_EXECUTABLE_NAME}
-    main.cpp
+include(FetchContent)
+FetchContent_Declare(ftxui
+    GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+    GIT_TAG v6.1.9
 )
-target_sources(${MAIN_EXECUTABLE_NAME}
-    PRIVATE
-        src/Example.cpp
+option(FTXUI_BUILD_EXAMPLES OFF)
+option(FTXUI_BUILD_DOCS OFF)
+FetchContent_MakeAvailable(ftxui)
+
+add_library(oop_lib STATIC
+    src/Network.cpp
+    src/Phone.cpp
+    src/PhoneCDC.cpp
+    src/ShoutPhone.cpp
+    src/WhisperPhone.cpp
+    src/ReversePhone.cpp
+    src/CommandInterpreter.cpp
 )
-
-set_compiler_flags(RUN_SANITIZERS ${USE_ASAN} TARGET_NAMES ${MAIN_EXECUTABLE_NAME})
-
-target_include_directories(${MAIN_EXECUTABLE_NAME} PUBLIC
+target_include_directories(oop_lib PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
 )
-target_include_directories(${MAIN_EXECUTABLE_NAME} SYSTEM PRIVATE
-    ext
-)
+target_include_directories(oop_lib SYSTEM PRIVATE ext)
+set_compiler_flags(RUN_SANITIZERS ${USE_ASAN} TARGET_NAMES oop_lib)
+
+add_executable(${MAIN_EXECUTABLE_NAME} main.cpp src/Tui.cpp)
+target_link_libraries(${MAIN_EXECUTABLE_NAME} PRIVATE oop_lib ftxui::component ftxui::dom ftxui::screen)
+set_compiler_flags(RUN_SANITIZERS ${USE_ASAN} TARGET_NAMES ${MAIN_EXECUTABLE_NAME})
+
 install(TARGETS ${MAIN_EXECUTABLE_NAME} DESTINATION ${DESTINATION_DIR})
 if(APPLE)
     install(FILES launcher.command DESTINATION ${DESTINATION_DIR})
 endif()
 
 copy_files(FILES tastatura.txt DIRECTORY assets COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
+
+option(BUILD_TESTS "Build tests" OFF)
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

@@ -1,0 +1,3 @@
+PhoneCDC { Before="Hello World", After="HELLO WORLD", Trace=[Phone { Name="Alice", Subscribers=["Bob"] }] }
+PhoneCDC { Before="HELLO WORLD", After="hello world", Trace=[Phone { Name="Alice", Subscribers=["Bob"] }, Phone { Name="Bob", Subscribers=["Charlie"] }] }
+PhoneCDC { Before="hello world", After="dlrow olleh", Trace=[Phone { Name="Alice", Subscribers=["Bob"] }, Phone { Name="Bob", Subscribers=["Charlie"] }, Phone { Name="Charlie", Subscribers=[] }] }

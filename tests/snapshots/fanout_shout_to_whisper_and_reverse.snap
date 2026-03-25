@@ -1,0 +1,3 @@
+PhoneCDC { Before="Test Message", After="TEST MESSAGE", Trace=[Phone { Name="Hub", Subscribers=["Left", "Right"] }] }
+PhoneCDC { Before="TEST MESSAGE", After="test message", Trace=[Phone { Name="Hub", Subscribers=["Left", "Right"] }, Phone { Name="Left", Subscribers=[] }] }
+PhoneCDC { Before="TEST MESSAGE", After="EGASSEM TSET", Trace=[Phone { Name="Hub", Subscribers=["Left", "Right"] }, Phone { Name="Right", Subscribers=[] }] }

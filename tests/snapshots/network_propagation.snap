@@ -1,0 +1,4 @@
+PhoneCDC { Before="Snapshot Test", After="SNAPSHOT TEST", Trace=[Phone { Name="Alice", Subscribers=["Bob"] }] }
+PhoneCDC { Before="SNAPSHOT TEST", After="snapshot test", Trace=[Phone { Name="Alice", Subscribers=["Bob"] }, Phone { Name="Bob", Subscribers=["Charlie"] }] }
+PhoneCDC { Before="snapshot test", After="tset tohspans", Trace=[Phone { Name="Alice", Subscribers=["Bob"] }, Phone { Name="Bob", Subscribers=["Charlie"] }, Phone { Name="Charlie", Subscribers=["Dave"] }] }
+PhoneCDC { Before="tset tohspans", After="tset tohspans", Trace=[Phone { Name="Alice", Subscribers=["Bob"] }, Phone { Name="Bob", Subscribers=["Charlie"] }, Phone { Name="Charlie", Subscribers=["Dave"] }, Phone { Name="Dave", Subscribers=[] }] }

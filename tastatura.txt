@@ -1,2 +1,12 @@
-5
-11 22 33 44 55
+create_network SimNet
+add_phone Alice ShoutPhone
+add_phone Bob WhisperPhone
+add_phone Charlie ReversePhone
+add_phone Dave Phone
+subscribe Alice Bob
+subscribe Bob Charlie
+subscribe Charlie Dave
+send Alice Hello World
+log
+print
+exit
