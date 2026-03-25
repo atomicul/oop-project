@@ -1,1 +1,12 @@
-Hello
+create_network SimNet
+add_phone Alice ShoutPhone
+add_phone Bob WhisperPhone
+add_phone Charlie ReversePhone
+add_phone Dave Phone
+subscribe Alice Bob
+subscribe Bob Charlie
+subscribe Charlie Dave
+send Alice Hello World
+log
+print
+exit
