@@ -1,17 +1,18 @@
 #include "phone.h"
+
 #include <algorithm>
+#include <format>
 #include <ranges>
-#include <sstream>
 #include <stdexcept>
 
 namespace vw = std::ranges::views;
 
-Phone::Phone(std::string name, std::vector<Phone *> subscribers)
+Phone::Phone(std::string name, std::unordered_set<Phone *> subscribers)
     : _name(std::move(name)), subscribers(std::move(subscribers)) {}
 
 const std::string &Phone::name() const { return _name; }
 
-void Phone::addSubscriber(Phone *p) { subscribers.push_back(p); }
+void Phone::addSubscriber(Phone *p) { subscribers.insert(p); }
 
 void Phone::onMessageTransmission(std::function<void(const PhoneCDC &)> callback) {
     on_transmission_callbacks.push_back(std::move(callback));
@@ -53,14 +54,8 @@ void Phone::sendMessage(std::string message, std::vector<Phone *> &trace) {
 void Phone::transform_message(std::string &) {}
 
 std::ostream &operator<<(std::ostream &os, const Phone &phone) {
-    std::stringstream subscribers_csv{};
-    if (!phone.subscribers.empty()) {
-        for (const Phone *p : phone.subscribers | vw::take(phone.subscribers.size() - 1)) {
-            subscribers_csv << '"' << p->_name << "\", ";
-        }
-        subscribers_csv << '"' << phone.subscribers.back()->_name << '"';
-    }
-
-    return os << "Phone { " << "Name=\"" << phone._name << "\", " << "Subscribers=["
-              << subscribers_csv.str() << "] }";
+    return os << "Phone { " << "Name=\"" << phone._name << "\", " << "Subscribers="
+              << std::format("{}", phone.subscribers |
+                                       std::views::transform([](Phone *p) { return p->name(); }))
+              << " }";
 }

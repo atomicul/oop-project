@@ -4,17 +4,17 @@
 #include <functional>
 #include <iosfwd>
 #include <string>
-#include <vector>
+#include <unordered_set>
 
 #include "phone_cdc.h"
 
 class Phone {
     std::string _name{};
-    std::vector<Phone *> subscribers{};
+    std::unordered_set<Phone *> subscribers{};
     std::vector<std::function<void(const PhoneCDC &)>> on_transmission_callbacks{};
 
   public:
-    explicit Phone(std::string name, std::vector<Phone *> subscribers = {});
+    explicit Phone(std::string name, std::unordered_set<Phone *> subscribers = {});
     Phone(Phone &&other) = delete;
     Phone &operator=(Phone &&other) = delete;
     Phone(const Phone &other) = delete;
