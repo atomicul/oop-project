@@ -52,25 +52,26 @@ TEST_CASE("fan-out: shout -> whisper + reverse") {
 TEST_CASE("network with mixed phones and propagation") {
     Network net("TestNet");
 
-    auto &alice = net.addPhone(std::make_unique<ShoutPhone>("Alice"));
-    auto &bob = net.addPhone(std::make_unique<WhisperPhone>("Bob"));
-    auto &charlie = net.addPhone(std::make_unique<ReversePhone>("Charlie"));
-    auto &dave = net.addPhone(std::make_unique<Phone>("Dave"));
+    auto alice = std::make_unique<ShoutPhone>("Alice");
+    auto bob = std::make_unique<WhisperPhone>("Bob");
+    auto charlie = std::make_unique<ReversePhone>("Charlie");
+    auto dave = std::make_unique<Phone>("Dave");
 
-    alice.addSubscriber(&bob);
-    bob.addSubscriber(&charlie);
-    charlie.addSubscriber(&dave);
+    alice->addSubscriber(bob.get());
+    bob->addSubscriber(charlie.get());
+    charlie->addSubscriber(dave.get());
+
+    net.addPhone(std::move(alice));
+    net.addPhone(std::move(bob));
+    net.addPhone(std::move(charlie));
+    net.addPhone(std::move(dave));
 
     snapshot::check(net, "network_mixed_phones");
 
     std::ostringstream collected;
+    net.onPhoneTransmission([&](const PhoneCDC &cdc) { collected << cdc << '\n'; });
 
-    alice.onMessageTransmission([&](const PhoneCDC &cdc) { collected << cdc << '\n'; });
-    bob.onMessageTransmission([&](const PhoneCDC &cdc) { collected << cdc << '\n'; });
-    charlie.onMessageTransmission([&](const PhoneCDC &cdc) { collected << cdc << '\n'; });
-    dave.onMessageTransmission([&](const PhoneCDC &cdc) { collected << cdc << '\n'; });
-
-    alice.sendMessage("Snapshot Test");
+    net.withPhone("Alice", [&](Phone &a) { a.sendMessage("Snapshot Test"); });
 
     snapshot::check_string(collected.str(), "network_propagation");
 }

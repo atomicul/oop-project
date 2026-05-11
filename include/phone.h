@@ -15,6 +15,10 @@ class Phone {
 
   public:
     explicit Phone(std::string name, std::vector<Phone *> subscribers = {});
+    Phone(Phone &&other) = delete;
+    Phone &operator=(Phone &&other) = delete;
+    Phone(const Phone &other) = delete;
+    Phone &operator=(const Phone &other) = delete;
 
     [[nodiscard]] const std::string &name() const;
 
