@@ -19,18 +19,17 @@
 class ClientConnection final : public TcpConnectionBase {
   private:
     std::shared_ptr<Network> network;
-    std::optional<std::string> attached_phone{};
-    std::optional<Network::ListenerToken> listener_token{};
+    std::optional<std::pair<std::string, Network::ListenerToken>> attached_phone{};
 
   public:
-    ClientConnection(UniqueFd fd, std::shared_ptr<Network> network)
+    ClientConnection(UniqueSocketFd fd, std::shared_ptr<Network> network)
         : TcpConnectionBase(std::move(fd)), network(std::move(network)) {}
 
     ~ClientConnection() override {
         close();
         wait();
-        if (listener_token) {
-            network->removeListener(*listener_token);
+        if (attached_phone) {
+            network->removeListener(attached_phone->second);
         }
     }
 
@@ -57,16 +56,16 @@ class ClientConnection final : public TcpConnectionBase {
         while (!data.empty() && (data.back() == '\n' || data.back() == '\r')) {
             data.pop_back();
         }
+
         if (data.empty()) {
-            const std::string name = *attached_phone;
-            network->removeListener(*listener_token);
-            listener_token.reset();
+            const std::string name = attached_phone->first;
+            network->removeListener(attached_phone->second);
             attached_phone.reset();
             send(std::format("Detached from \"{}\".\n", name));
             return;
         }
 
-        const std::string current = *attached_phone;
+        const std::string current = attached_phone->first;
         const bool ok =
             network->withPhone(current, [&](Phone &p) { p.sendMessage(std::move(data)); });
         if (!ok) {
@@ -148,7 +147,7 @@ class ClientConnection final : public TcpConnectionBase {
                  return std::string{"USAGE: attach <phone>\n"};
              }
              if (attached_phone) {
-                 return std::format("Error: Already attached to \"{}\"\n", *attached_phone);
+                 return std::format("Error: Already attached to \"{}\"\n", attached_phone->first);
              }
 
              const bool exists = network->withPhone(name, [](Phone &) {});
@@ -156,14 +155,15 @@ class ClientConnection final : public TcpConnectionBase {
                  return std::format("Error: Phone \"{}\" not found\n", name);
              }
 
-             attached_phone = name;
-             listener_token = network->onPhoneTransmission(name, [this](const PhoneCDC &cdc) {
+             auto listener_token = network->onPhoneTransmission(name, [this](const PhoneCDC &cdc) {
                  if (cdc.trace().size() < 2) {
                      return;
                  }
 
                  send(std::format("{}\n", cdc.beforeMessage()));
              });
+
+             attached_phone = std::pair{name, listener_token};
              return std::format("Attached to \"{}\". Send an empty line to detach.\n", name);
          }}};
 };

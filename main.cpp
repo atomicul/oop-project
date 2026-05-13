@@ -18,7 +18,7 @@ int main() {
     std::signal(SIGTERM, on_exit);
 
     auto network = std::make_shared<Network>(NETWORK_NAME);
-    TcpServer::ConnectionFactory factory = [network](UniqueFd fd) {
+    TcpServer::ConnectionFactory factory = [network](UniqueSocketFd fd) {
         return std::make_unique<ClientConnection>(std::move(fd), network);
     };
 

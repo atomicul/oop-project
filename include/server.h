@@ -16,28 +16,29 @@
 #include <utility>
 #include <vector>
 
-class UniqueFd {
+class UniqueSocketFd {
   public:
-    UniqueFd() noexcept = default;
-    explicit UniqueFd(int fd) noexcept : fd_(fd) {}
+    UniqueSocketFd() noexcept = default;
+    explicit UniqueSocketFd(int fd) noexcept : fd_(fd) {}
 
-    UniqueFd(const UniqueFd &) = delete;
-    UniqueFd &operator=(const UniqueFd &) = delete;
+    UniqueSocketFd(const UniqueSocketFd &) = delete;
+    UniqueSocketFd &operator=(const UniqueSocketFd &) = delete;
 
-    UniqueFd(UniqueFd &&other) noexcept : fd_(std::exchange(other.fd_, -1)) {}
+    UniqueSocketFd(UniqueSocketFd &&other) noexcept : fd_(std::exchange(other.fd_, -1)) {}
 
-    UniqueFd &operator=(UniqueFd &&other) noexcept {
+    UniqueSocketFd &operator=(UniqueSocketFd &&other) noexcept {
         reset(std::exchange(other.fd_, -1));
         return *this;
     }
 
-    ~UniqueFd() { reset(); }
+    ~UniqueSocketFd() { reset(); }
 
     [[nodiscard]] int get() const noexcept { return fd_; }
     [[nodiscard]] bool is_valid() const noexcept { return fd_ >= 0; }
 
     void reset(int new_fd = -1) noexcept {
         if (fd_ >= 0) {
+            ::shutdown(fd_, SHUT_RDWR);
             ::close(fd_);
         }
         fd_ = new_fd;
@@ -49,7 +50,7 @@ class UniqueFd {
 
 class TcpConnectionBase {
   public:
-    explicit TcpConnectionBase(UniqueFd fd) : fd_(std::move(fd)), is_done_(false) {}
+    explicit TcpConnectionBase(UniqueSocketFd fd) : fd_(std::move(fd)), is_done_(false) {}
 
     virtual ~TcpConnectionBase() {
         close();
@@ -100,9 +101,7 @@ class TcpConnectionBase {
 
     void close() {
         if (!is_done_.exchange(true, std::memory_order_relaxed)) {
-            if (fd_.is_valid()) {
-                ::shutdown(fd_.get(), SHUT_RDWR);
-            }
+            fd_.reset();
         }
     }
 
@@ -128,7 +127,7 @@ class TcpConnectionBase {
         close();
     }
 
-    UniqueFd fd_;
+    UniqueSocketFd fd_;
     std::atomic<bool> is_done_;
     std::thread worker_thread_;
     std::mutex send_mutex_;
@@ -136,7 +135,7 @@ class TcpConnectionBase {
 
 class TcpServer final {
   public:
-    using ConnectionFactory = std::function<std::unique_ptr<TcpConnectionBase>(UniqueFd)>;
+    using ConnectionFactory = std::function<std::unique_ptr<TcpConnectionBase>(UniqueSocketFd)>;
 
     explicit TcpServer(uint16_t port, ConnectionFactory factory)
         : factory_(std::move(factory)), running_(true) {
@@ -174,9 +173,7 @@ class TcpServer final {
     ~TcpServer() {
         running_ = false;
 
-        if (server_fd_.is_valid()) {
-            ::shutdown(server_fd_.get(), SHUT_RDWR);
-        }
+        server_fd_.reset();
 
         if (acceptor_thread_.joinable()) {
             acceptor_thread_.join();
@@ -206,7 +203,7 @@ class TcpServer final {
                                            reinterpret_cast<sockaddr *>(&client_addr), &client_len);
 
                 if (client_sock >= 0) {
-                    UniqueFd client_fd(client_sock);
+                    UniqueSocketFd client_fd(client_sock);
 
                     try {
                         auto conn = factory_(std::move(client_fd));
@@ -239,7 +236,7 @@ class TcpServer final {
             connections_.end());
     }
 
-    UniqueFd server_fd_;
+    UniqueSocketFd server_fd_;
     ConnectionFactory factory_;
     std::atomic<bool> running_;
     std::thread acceptor_thread_;
