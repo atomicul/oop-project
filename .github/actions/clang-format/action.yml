@@ -4,11 +4,8 @@ description: 'Install and run clang-format'
 runs:
   using: "composite"
   steps:
-    - name: Install clang-format
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install --no-install-recommends clang-format-${{ env.CLANG_VER }}
+    - name: Install packages
+      uses: ./.github/actions/install-packages
 
     - name: Run clang-format
       shell: bash

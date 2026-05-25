@@ -4,11 +4,8 @@ description: 'Install and run clang-tidy'
 runs:
   using: "composite"
   steps:
-    - name: Install clang-tidy
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install --no-install-recommends clang-tidy-${{ env.CLANG_VER }} libc++-${{ env.CLANG_VER }}-dev libc++abi-${{ env.CLANG_VER }}-dev ninja-build
+    - name: Install packages
+      uses: ./.github/actions/install-packages
 
     - name: Configure CMake
       uses: ./.github/actions/configure-cmake

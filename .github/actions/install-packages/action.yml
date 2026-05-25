@@ -4,17 +4,57 @@ description: 'Install required packages'
 runs:
   using: "composite"
   steps:
-    # Common Linux dependencies
-    - name: Install Linux Dependencies
+    # Linux: install ninja + GCC 15 (from the Toolchain Test Builds PPA) and
+    # Clang 20 (from apt.llvm.org), so that we have libstdc++-15 / libc++-20.
+    # Both ship the C++23 std::format range formatters that this project
+    # relies on (see e.g. `std::format("{}", view | views::transform(...))`),
+    # which earlier libstdc++/libc++ releases don't fully implement.
+    - name: Install Linux toolchain
       shell: bash
       if: runner.os == 'Linux'
       run: |
+        set -euxo pipefail
         sudo apt-get update
-        sudo apt-get install ninja-build
+        sudo apt-get install --no-install-recommends \
+          ninja-build wget gnupg lsb-release software-properties-common ca-certificates
+
+        # GCC 15
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+
+        # LLVM 20 apt source
+        wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | \
+          sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
+        codename=$(lsb_release -sc)
+        echo "deb http://apt.llvm.org/${codename}/ llvm-toolchain-${codename}-20 main" | \
+          sudo tee /etc/apt/sources.list.d/llvm-20.list > /dev/null
+
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends \
+          gcc-15 g++-15 libstdc++-15-dev \
+          clang-20 clang-tidy-20 clang-format-20 \
+          libc++-20-dev libc++abi-20-dev
 
     - name: Install valgrind
       shell: bash
       if: runner.os == 'Linux' && matrix.runs_valgrind == true
       run: |
-        # sudo apt-get update
         sudo apt-get install --no-install-recommends valgrind
+
+    # macOS: ninja, plus GCC 15 from Homebrew when the matrix entry asks for
+    # it, and LLVM 20 (replacing Apple Clang on PATH) when the matrix uses
+    # plain `clang++`. Apple Clang on macos-15 still bundles a libc++ older
+    # than the one in LLVM 20.
+    - name: Install macOS toolchain
+      shell: bash
+      if: runner.os == 'macOS'
+      run: |
+        set -euxo pipefail
+        brew update
+        brew install ninja
+        if [[ "${CXX}" == "g++-15" ]]; then
+          brew install gcc@15
+        fi
+        if [[ "${CXX}" == "clang++" ]]; then
+          brew install llvm@20
+          echo "$(brew --prefix llvm@20)/bin" >> "${GITHUB_PATH}"
+        fi
