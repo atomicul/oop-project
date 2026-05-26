@@ -8,8 +8,31 @@
 #include "shout_phone.h"
 #include "whisper_phone.h"
 
+#include <algorithm>
 #include <memory>
 #include <sstream>
+#include <string>
+#include <vector>
+
+namespace {
+// Propagation order across multiple subscribers is not guaranteed, so sort the
+// collected lines before comparing against the snapshot.
+std::string sortLines(const std::string &input) {
+    std::vector<std::string> lines;
+    std::istringstream iss(input);
+    std::string line;
+    while (std::getline(iss, line)) {
+        lines.push_back(line);
+    }
+    std::ranges::sort(lines);
+    std::string out;
+    for (const auto &l : lines) {
+        out += l;
+        out += '\n';
+    }
+    return out;
+}
+} // namespace
 
 TEST_CASE("chain propagation: shout -> whisper -> reverse") {
     ShoutPhone alice("Alice");
@@ -27,7 +50,7 @@ TEST_CASE("chain propagation: shout -> whisper -> reverse") {
 
     alice.sendMessage("Hello World");
 
-    snapshot::check_string(collected.str(), "chain_shout_whisper_reverse");
+    snapshot::check_string(sortLines(collected.str()), "chain_shout_whisper_reverse");
 }
 
 TEST_CASE("fan-out: shout -> whisper + reverse") {
@@ -46,7 +69,7 @@ TEST_CASE("fan-out: shout -> whisper + reverse") {
 
     hub.sendMessage("Test Message");
 
-    snapshot::check_string(collected.str(), "fanout_shout_to_whisper_and_reverse");
+    snapshot::check_string(sortLines(collected.str()), "fanout_shout_to_whisper_and_reverse");
 }
 
 TEST_CASE("network with mixed phones and propagation") {
@@ -73,5 +96,5 @@ TEST_CASE("network with mixed phones and propagation") {
 
     net.withPhone("Alice", [&](Phone &a) { a.sendMessage("Snapshot Test"); });
 
-    snapshot::check_string(collected.str(), "network_propagation");
+    snapshot::check_string(sortLines(collected.str()), "network_propagation");
 }
