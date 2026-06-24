@@ -24,7 +24,9 @@ class Phone {
 
     void addSubscriber(Phone *p);
     void sendMessage(std::string message);
-    void onMessageTransmission(std::function<void(const PhoneCDC &)> callback);
+    template <typename Callable> void onMessageTransmission(Callable callback) {
+        on_transmission_callbacks.emplace_back(std::move(callback));
+    }
 
     friend std::ostream &operator<<(std::ostream &os, const Phone &phone);
 

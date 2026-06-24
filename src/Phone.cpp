@@ -14,10 +14,6 @@ const std::string &Phone::name() const { return _name; }
 
 void Phone::addSubscriber(Phone *p) { subscribers.insert(p); }
 
-void Phone::onMessageTransmission(std::function<void(const PhoneCDC &)> callback) {
-    on_transmission_callbacks.push_back(std::move(callback));
-}
-
 void Phone::sendMessage(std::string message) {
     std::vector<Phone *> trace{};
 
