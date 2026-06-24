@@ -49,7 +49,7 @@ class Network final {
         auto tup = std::forward_as_tuple(std::forward<Args>(args)...);
         return [this, &tup]<std::size_t... Is>(std::index_sequence<Is...>) {
             constexpr std::size_t N = sizeof...(Is);
-            auto &cb = std::get<N>(tup);
+            const auto &cb = std::get<N>(tup);
             const std::lock_guard lock(mtx);
             std::array<Phone *, N> ptrs{};
             const bool found_all = ((ptrs[Is] = findPhoneUnlocked(std::get<Is>(tup))) && ...);

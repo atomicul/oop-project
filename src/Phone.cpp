@@ -52,6 +52,6 @@ void Phone::transform_message(std::string &) {}
 std::ostream &operator<<(std::ostream &os, const Phone &phone) {
     return os << "Phone { " << "Name=\"" << phone._name << "\", " << "Subscribers="
               << std::format("{}", phone.subscribers |
-                                       std::views::transform([](Phone *p) { return p->name(); }))
+                                       std::views::transform([](const Phone *p) { return p->name(); }))
               << " }";
 }
